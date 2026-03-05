@@ -3,6 +3,7 @@ import asyncio
 import atexit
 import hashlib
 import httpx
+import json
 import os
 import subprocess
 
@@ -532,13 +533,6 @@ async def _ingest_default_documents_url(
         "input_value": docs_url,
         "input_type": "chat",
         "output_type": "text",
-        "tweaks": {
-            "URLComponent-lnA0q": {
-                "urls": [docs_url],
-                "max_depth": crawl_depth,
-                "prevent_outside": True,
-            }
-        },
     }
     config = get_openrag_config()
     headers = {
@@ -550,6 +544,12 @@ async def _ingest_default_documents_url(
         "X-Langflow-Global-Var-SELECTED_EMBEDDING_MODEL": str(
             config.knowledge.embedding_model
         ),
+        # Prefer global variable passthrough over component tweaks so the
+        # flow stays stable even if component IDs change.
+        "X-Langflow-Global-Var-DOCS_URL": str(docs_url),
+        "X-Langflow-Global-Var-DOCS_URLS": json.dumps([docs_url]),
+        "X-Langflow-Global-Var-DOCS_CRAWL_DEPTH": str(crawl_depth),
+        "X-Langflow-Global-Var-DOCS_PREVENT_OUTSIDE": "true",
     }
     add_provider_credentials_to_headers(headers, config)
 
