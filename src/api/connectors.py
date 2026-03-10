@@ -1077,7 +1077,8 @@ async def s3_bucket_status(
         s3 = create_s3_resource(connection.config)
         all_buckets = [b.name for b in s3.buckets.all()]
     except Exception as exc:
-        return JSONResponse({"error": f"Failed to list buckets: {exc}"}, status_code=500)
+        logger.exception("Failed to list buckets from S3 for connection %s", connection_id)
+        return JSONResponse({"error": "Failed to list buckets"}, status_code=500)
 
     # 2. Count indexed documents per bucket from OpenSearch
     ingested_counts: dict = {}
