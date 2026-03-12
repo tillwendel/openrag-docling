@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from config.settings import LANGFLOW_INGEST_FLOW_ID, LANGFLOW_URL_INGEST_FLOW_ID, clients
@@ -244,11 +245,9 @@ class LangflowFileService:
         tweaks: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Run URL-based docs ingestion flow using Langflow global variable passthrough."""
-        if not self.flow_id_url_ingest:
-            logger.error("[LF] LANGFLOW_URL_INGEST_FLOW_ID is not configured")
-            raise ValueError("LANGFLOW_URL_INGEST_FLOW_ID is not configured")
         if not docs_url:
             raise ValueError("DEFAULT_DOCS_URL is not configured")
+        flow_id = await self._ensure_url_ingest_flow_id()
 
         payload: Dict[str, Any] = {
             "input_value": docs_url,
@@ -291,11 +290,15 @@ class LangflowFileService:
         )
         resp = await clients.langflow_request(
             "POST",
-            f"/api/v1/run/{self.flow_id_url_ingest}",
+            f"/api/v1/run/{flow_id}",
             json=payload,
             headers=headers,
         )
-        logger.info(f"[LF] Response for URL ingestion flow: {resp.json()}")
+        logger.info(
+            "[LF] URL ingestion flow response received",
+            status_code=resp.status_code,
+            flow_id=flow_id,
+        )
         if resp.status_code >= 400:
             logger.error(
                 "[LF] URL ingestion flow failed",
@@ -319,6 +322,63 @@ class LangflowFileService:
             )
 
         return resp.json()
+
+    async def _ensure_url_ingest_flow_id(self) -> str:
+        """Ensure URL ingest flow ID is valid; import flow if missing."""
+        configured_flow_id = self.flow_id_url_ingest
+        if configured_flow_id:
+            check_resp = await clients.langflow_request(
+                "GET", f"/api/v1/flows/{configured_flow_id}"
+            )
+            if check_resp.status_code < 400:
+                return configured_flow_id
+            if check_resp.status_code != 404:
+                logger.warning(
+                    "[LF] URL ingest flow check returned non-404 error",
+                    flow_id=configured_flow_id,
+                    status_code=check_resp.status_code,
+                    body_preview=check_resp.text[:300],
+                )
+                check_resp.raise_for_status()
+
+        flow_file = Path(__file__).resolve().parents[2] / "flows" / "openrag_url_mcp.json"
+        if not flow_file.exists():
+            raise ValueError(
+                "LANGFLOW_URL_INGEST_FLOW_ID is invalid and "
+                f"flow file was not found at {flow_file}"
+            )
+
+        logger.warning(
+            "[LF] URL ingest flow ID missing/invalid; importing flow JSON",
+            flow_file=str(flow_file),
+            previous_flow_id=configured_flow_id,
+        )
+        with flow_file.open("r", encoding="utf-8") as f:
+            flow_payload = json.load(f)
+
+        create_resp = await clients.langflow_request(
+            "POST", "/api/v1/flows/", json=flow_payload
+        )
+        if create_resp.status_code not in (200, 201):
+            logger.error(
+                "[LF] Failed to import URL ingest flow",
+                status_code=create_resp.status_code,
+                body_preview=create_resp.text[:500],
+            )
+            create_resp.raise_for_status()
+
+        flow_data = create_resp.json()
+        imported_flow_id = flow_data.get("id")
+        if not imported_flow_id:
+            raise ValueError("Langflow flow import succeeded but no flow id was returned")
+
+        self.flow_id_url_ingest = imported_flow_id
+        logger.warning(
+            "[LF] Imported URL ingest flow for current runtime",
+            imported_flow_id=imported_flow_id,
+            note="Persist this in LANGFLOW_URL_INGEST_FLOW_ID to avoid re-importing on restart.",
+        )
+        return imported_flow_id
 
     async def upload_and_ingest_file(
         self,
