@@ -8,17 +8,18 @@ import { useGetSettingsQuery } from "@/app/api/queries/useGetSettingsQuery";
 import { AssistantMessage } from "@/app/chat/_components/assistant-message";
 import Nudges from "@/app/chat/_components/nudges";
 import { UserMessage } from "@/app/chat/_components/user-message";
-import type { Message, SelectedFilters } from "@/app/chat/_types/types";
+import type { Message } from "@/app/chat/_types/types";
 import OnboardingCard from "@/app/onboarding/_components/onboarding-card";
 import { useChat } from "@/contexts/chat-context";
 import { useChatStreaming } from "@/hooks/useChatStreaming";
+import type { FilterInput } from "@/lib/filter-normalization";
 import { buildSearchPayloadFilters } from "@/lib/filter-normalization";
 
 import { OnboardingStep } from "./onboarding-step";
 import OnboardingUpload from "./onboarding-upload";
 
 // Filters for OpenRAG documentation
-const OPENRAG_DOCS_FILTERS: SelectedFilters = {
+const OPENRAG_DOCS_FILTERS: FilterInput = {
   data_sources: [],
   document_types: [],
   owners: [],

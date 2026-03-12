@@ -16,9 +16,25 @@ const refreshOpenragDocs = async (): Promise<RefreshOpenRAGDocsResponse> => {
   });
 
   if (!response.ok) {
-    const error = await response.json();
+    let errorMessage = "Failed to refresh OpenRAG docs";
+
+    try {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const error = await response.json();
+        errorMessage = error.detail || error.error || errorMessage;
+      } else {
+        const text = (await response.text()).trim();
+        if (text) {
+          errorMessage = text;
+        }
+      }
+    } catch {
+      // Keep default fallback message for malformed/non-JSON bodies.
+    }
+
     throw new Error(
-      error.detail || error.error || "Failed to refresh OpenRAG docs",
+      errorMessage,
     );
   }
 

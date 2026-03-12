@@ -226,26 +226,8 @@ function SearchPage() {
   });
   // Combine task files first, then backend files
   const fileResults = [...backendFiles, ...filteredTaskFiles];
-  const hasOpenragDocsEntry = fileResults.some((file) => isOpenragDocsRow(file));
-  const isDefaultKnowledgeView =
-    !queryOverride || queryOverride.trim().length === 0 || queryOverride === "*";
-  const shouldShowDefaultOpenragPlaceholder =
-    isDefaultKnowledgeView &&
-    !isFetching &&
-    !hasOpenragDocsEntry &&
-    fileResults.length === 0;
-
-  const placeholderOpenragDoc: File = {
-    filename: "What is OpenRAG docs",
-    mimetype: "text/markdown",
-    source_url: "https://www.openr.ag/",
-    size: 0,
-    connector_type: "openrag_docs",
-    status: "unavailable",
-  };
-  const gridRows = shouldShowDefaultOpenragPlaceholder
-    ? [placeholderOpenragDoc]
-    : fileResults;
+ 
+  const gridRows = fileResults;
   const gridRef = useRef<AgGridReact>(null);
 
   const columnDefs: ColDef<File>[] = [
