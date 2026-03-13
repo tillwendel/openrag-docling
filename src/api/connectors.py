@@ -101,8 +101,8 @@ async def list_connectors(
 ):
     """List available connector types with metadata"""
     try:
-        connector_types = (
-            connector_service.connection_manager.get_available_connector_types()
+        connector_types = connector_service.connection_manager.get_available_connector_types(
+            user_id=user.user_id
         )
         return JSONResponse({"connectors": connector_types})
     except Exception as e:
