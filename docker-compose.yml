@@ -132,7 +132,7 @@ services:
   langflow:
     volumes:
       - ${OPENRAG_FLOWS_PATH:-./flows}:/app/flows:U,z
-    image: my-langflow:docling #langflowai/openrag-langflow:${OPENRAG_VERSION:-latest}
+    image: langflowai/openrag-langflow:${OPENRAG_VERSION:-latest}
     build:
       context: .
       dockerfile: Dockerfile.langflow
