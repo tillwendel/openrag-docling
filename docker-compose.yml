@@ -1,4 +1,9 @@
 services:
+  docling-serve:
+    image: tillwendel/docling-serve:vlm
+    container_name: docling-serve
+    ports:
+      - "5001:5001"
   opensearch:
     image: langflowai/openrag-opensearch:${OPENRAG_VERSION:-latest}
     #build:
@@ -127,7 +132,7 @@ services:
   langflow:
     volumes:
       - ${OPENRAG_FLOWS_PATH:-./flows}:/app/flows:U,z
-    image: langflowai/openrag-langflow:${OPENRAG_VERSION:-latest}
+    image: my-langflow:docling #langflowai/openrag-langflow:${OPENRAG_VERSION:-latest}
     build:
       context: .
       dockerfile: Dockerfile.langflow
