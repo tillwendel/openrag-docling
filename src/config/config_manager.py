@@ -49,6 +49,17 @@ class ProvidersConfig:
     watsonx: WatsonXConfig
     ollama: OllamaConfig
 
+    def any_configured(self):
+        """Check if any provider is configured."""
+        return any(
+            [
+                self.openai.configured,
+                self.anthropic.configured,
+                self.watsonx.configured,
+                self.ollama.configured,
+            ]
+        )
+
     def get_provider_config(self, provider: str):
         """Get configuration for a specific provider."""
         provider_lower = provider.lower()
