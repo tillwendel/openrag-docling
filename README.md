@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <div align="center">
 
 <img src="./docs/static/img/openrag-logo-dog.svg" alt="" width="120"/>
@@ -166,3 +167,6 @@ For developers who want to [contribute to OpenRAG](https://docs.openr.ag/support
 For assistance with OpenRAG, see [Troubleshoot OpenRAG](https://docs.openr.ag/support/troubleshoot) and visit the [Discussions page](https://github.com/langflow-ai/openrag/discussions).
 
 To report a bug or submit a feature request, visit the [Issues page](https://github.com/langflow-ai/openrag/issues).
+=======
+# openrag-docling
+>>>>>>> f4d914b00b03ac871ee6b1b954a3470d39595785
